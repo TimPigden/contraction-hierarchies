@@ -13,7 +13,7 @@ public class NodeListFromEdgeList extends AbstractList<Node> {
         Preconditions.require(de.size()>0);
         
         if (de.size() > 1) {
-            if (de.get(0).to != de.get(1).from) {
+            if (de.get(0).to() != de.get(1).from()) {
                 throw new RuntimeException("This class only supports forward edge lists at the moment, sorry.");
             }
         }
@@ -24,9 +24,9 @@ public class NodeListFromEdgeList extends AbstractList<Node> {
     @Override
     public Node get(int index) {
         if (index==0) {
-            return de.get(0).from;
+            return de.get(0).from();
         } else {
-            return de.get(index-1).to;
+            return de.get(index-1).to();
         }
     }
 

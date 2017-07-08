@@ -1,7 +1,6 @@
 package uk.me.mjt.ch;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -94,7 +93,7 @@ public class Dijkstra {
             thisNodeInfo.distanceOrder = null;
 
             for (DirectedEdge edge : (direction == Direction.FORWARDS ? shortestTimeNode.edgesFrom : shortestTimeNode.edgesTo)) {
-                Node n = (direction == Direction.FORWARDS ? edge.to : edge.from);
+                Node n = (direction == Direction.FORWARDS ? edge.to() : edge.from());
                 if (n.contractionOrder < shortestTimeNode.contractionOrder)
                     break;
                 
@@ -107,7 +106,7 @@ public class Dijkstra {
                 if (neighborNodeInfo.visited)
                     continue;
                 
-                int newTime = thisNodeInfo.minDriveTime + edge.driveTimeMs;
+                int newTime = thisNodeInfo.minDriveTime + edge.driveTimeMs();
                 int previousTime = neighborNodeInfo.minDriveTime;
                 
                 if (newTime < previousTime) {

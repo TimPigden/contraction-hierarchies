@@ -4,21 +4,22 @@ package uk.me.mjt.ch.cache;
 import java.util.HashMap;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import uk.me.mjt.ch.DijkstraSolution;
-import uk.me.mjt.ch.GraphContractor;
-import uk.me.mjt.ch.MakeTestData;
-import uk.me.mjt.ch.MapData;
-import uk.me.mjt.ch.Node;
+
+import uk.me.mjt.ch.*;
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
 
 public class CachedContractedDijkstraTest {
 
     public CachedContractedDijkstraTest() {
     }
+    DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory);
 
     @Test
     public void testContractedGraphDijkstra() {
-        MapData graph = MakeTestData.makeLadder(2,10);
-        GraphContractor instance = new GraphContractor(graph);
+        MapData graph = makeTestData.makeLadder(2,10);
+
+        GraphContractor instance = new GraphContractor(graph, edgeFactory);
         instance.initialiseContractionOrder();
         instance.contractAll();
         

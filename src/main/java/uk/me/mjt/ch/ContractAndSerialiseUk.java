@@ -1,6 +1,8 @@
 package uk.me.mjt.ch;
 
 import java.util.*;
+
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
 import uk.me.mjt.ch.loader.BinaryFormat;
 import uk.me.mjt.ch.status.StdoutStatusMonitor;
 
@@ -21,19 +23,21 @@ public class ContractAndSerialiseUk {
         try {
             
             System.out.println("Loading data...");
-            BinaryFormat bf = new BinaryFormat();
+            DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+
+            BinaryFormat bf = new BinaryFormat(edgeFactory);
             MapData allNodes=bf.read(filenamePrefix+"-nodes.dat", filenamePrefix+"-ways.dat",
                     filenamePrefix+"-turnrestrictions.dat", new StdoutStatusMonitor());
             
             Node startNode = allNodes.getNodeById(startNodeId);
             
             System.out.println("Adjusting for restrictions...");
-            allNodes = AdjustGraphForRestrictions.makeNewGraph(allNodes, startNode);
+            allNodes = AdjustGraphForRestrictions.makeNewGraph(allNodes, startNode, edgeFactory);
             
             CheckOsmRouting.checkUncontracted(allNodes);
             
             System.out.println("Contracting...");
-            GraphContractor contractor = new GraphContractor(allNodes);
+            GraphContractor contractor = new GraphContractor(allNodes, edgeFactory);
 
             long startTime2 = System.currentTimeMillis();
             contractor.initialiseContractionOrder();

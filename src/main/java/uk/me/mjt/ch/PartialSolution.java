@@ -44,7 +44,7 @@ public abstract class PartialSolution {
             if (viaEdgeId != START_NODE_TO_START_NODE_PATH) {
                 DirectedEdge viaEdge = findEdgeWithId(thisNode, viaEdgeId, from);
                 edges.addFirst(viaEdge);
-                Node nextNode = (from?viaEdge.to:viaEdge.from);
+                Node nextNode = (from?viaEdge.to():viaEdge.from());
                 if (nextNode.contractionOrder > thisNode.contractionOrder) {
                     throw new RuntimeException("Unexpectedly following edge from earlier-contracted node towards "
                             + "later-contracted node? " + thisNode + " vs " + nextNode);
@@ -75,7 +75,7 @@ public abstract class PartialSolution {
     
     private DirectedEdge findEdgeWithId(Node node, long edgeId, boolean from) {
         for (DirectedEdge de : (from?node.edgesFrom:node.edgesTo)) {
-            if (de.edgeId==edgeId)
+            if (de.edgeId()==edgeId)
                 return de;
         }
         throw new EdgeNotFoundException();
@@ -130,12 +130,12 @@ public abstract class PartialSolution {
             bb.putInt(contractionOrderOffset+4*i, n.contractionOrder);
             bb.putInt(totalDriveTimeOffset+4*i, ds.totalDriveTimeMs);
             
-            List<DirectedEdge> directedEdges = ds.getDeltaEdges();
+            List<DirectedEdge> directedEdgeJS = ds.getDeltaEdges();
 
-            if (directedEdges.size() == 1) {
-                DirectedEdge de = directedEdges.get(0);
-                bb.putLong(viaEdgesOffset+8*i, de.edgeId);
-            } else if (ds.getFirstNode().equals(ds.getLastNode()) && directedEdges.isEmpty()) {
+            if (directedEdgeJS.size() == 1) {
+                DirectedEdge de = directedEdgeJS.get(0);
+                bb.putLong(viaEdgesOffset+8*i, de.edgeId());
+            } else if (ds.getFirstNode().equals(ds.getLastNode()) && directedEdgeJS.isEmpty()) {
                 bb.putLong(viaEdgesOffset+8*i, START_NODE_TO_START_NODE_PATH);
             } else {
                 throw new RuntimeException("Delta edge length isn't 1?");

@@ -35,7 +35,7 @@ public class Node implements Comparable<Node> {
     int getCountOutgoingUncontractedEdges() {
         int count = 0;
         for (DirectedEdge de : edgesFrom) {
-            if (de.to.contractionOrder == UNCONTRACTED)
+            if (de.to().contractionOrder == UNCONTRACTED)
                 count++;
         }
         return count;
@@ -44,7 +44,7 @@ public class Node implements Comparable<Node> {
     int getCountIncomingUncontractedEdges() {
         int count = 0;
         for (DirectedEdge de : edgesTo) {
-            if (de.from.contractionOrder  == UNCONTRACTED)
+            if (de.from().contractionOrder  == UNCONTRACTED)
                 count++;
         }
         return count;
@@ -61,10 +61,10 @@ public class Node implements Comparable<Node> {
     public List<Node> getNeighbors() {
         HashSet<Node> neighbors = new HashSet<>();
         for (DirectedEdge de : edgesFrom) {
-            neighbors.add(de.to);
+            neighbors.add(de.to());
         }
         for (DirectedEdge de : edgesTo) {
-            neighbors.add(de.from);
+            neighbors.add(de.from());
         }
         return new ArrayList(neighbors);
     }
@@ -105,14 +105,14 @@ public class Node implements Comparable<Node> {
         Collections.sort(edgesFrom, new Comparator<DirectedEdge>() {
             @Override
             public int compare(DirectedEdge t, DirectedEdge t1) {
-                if (t1.to.contractionOrder != t.to.contractionOrder) {
-                    return Integer.compare(t1.to.contractionOrder, t.to.contractionOrder);
-                } else if (t1.driveTimeMs != t.driveTimeMs) {
-                    return Integer.compare(t.driveTimeMs, t1.driveTimeMs);
-                } else if (t.to.nodeId != t1.to.nodeId) {
-                    return Long.compare(t.to.nodeId, t1.to.nodeId);
+                if (t1.to().contractionOrder != t.to().contractionOrder) {
+                    return Integer.compare(t1.to().contractionOrder, t.to().contractionOrder);
+                } else if (t1.driveTimeMs() != t.driveTimeMs()) {
+                    return Integer.compare(t.driveTimeMs(), t1.driveTimeMs());
+                } else if (t.to().nodeId != t1.to().nodeId) {
+                    return Long.compare(t.to().nodeId, t1.to().nodeId);
                 } else {
-                    return Long.compare(t.edgeId, t1.edgeId);
+                    return Long.compare(t.edgeId(), t1.edgeId());
                 }
             }
         });
@@ -120,14 +120,14 @@ public class Node implements Comparable<Node> {
         Collections.sort(edgesTo, new Comparator<DirectedEdge>() {
             @Override
             public int compare(DirectedEdge t, DirectedEdge t1) {
-                if (t1.from.contractionOrder != t.from.contractionOrder) {
-                    return Integer.compare(t1.from.contractionOrder, t.from.contractionOrder);
-                } else if (t1.driveTimeMs != t.driveTimeMs) {
-                    return Integer.compare(t.driveTimeMs, t1.driveTimeMs);
-                } else if (t.from.nodeId != t1.from.nodeId) {
-                    return Long.compare(t.from.nodeId, t1.from.nodeId);
+                if (t1.from().contractionOrder != t.from().contractionOrder) {
+                    return Integer.compare(t1.from().contractionOrder, t.from().contractionOrder);
+                } else if (t1.driveTimeMs() != t.driveTimeMs()) {
+                    return Integer.compare(t.driveTimeMs(), t1.driveTimeMs());
+                } else if (t.from().nodeId != t1.from().nodeId) {
+                    return Long.compare(t.from().nodeId, t1.from().nodeId);
                 } else {
-                    return Long.compare(t.edgeId, t1.edgeId);
+                    return Long.compare(t.edgeId(), t1.edgeId());
                 }
             }
         });
@@ -142,12 +142,12 @@ public class Node implements Comparable<Node> {
     
     public boolean anyEdgesAccessOnly() {
         for (DirectedEdge de : edgesFrom) {
-            if (de.accessOnly == AccessOnly.TRUE) {
+            if (de.accessOnly() == AccessOnly.TRUE) {
                 return true;
             }
         }
         for (DirectedEdge de : edgesTo) {
-            if (de.accessOnly == AccessOnly.TRUE) {
+            if (de.accessOnly() == AccessOnly.TRUE) {
                 return true;
             }
         }
@@ -156,12 +156,12 @@ public class Node implements Comparable<Node> {
     
     public boolean allEdgesAccessOnly() {
         for (DirectedEdge de : edgesFrom) {
-            if (de.accessOnly == AccessOnly.FALSE) {
+            if (de.accessOnly() == AccessOnly.FALSE) {
                 return false;
             }
         }
         for (DirectedEdge de : edgesTo) {
-            if (de.accessOnly == AccessOnly.FALSE) {
+            if (de.accessOnly() == AccessOnly.FALSE) {
                 return false;
             }
         }

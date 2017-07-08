@@ -2,13 +2,9 @@ package uk.me.mjt.ch.loader;
 
 import java.io.*;
 import java.util.*;
-import uk.me.mjt.ch.AccessOnly;
-import uk.me.mjt.ch.Barrier;
-import uk.me.mjt.ch.DirectedEdge;
-import uk.me.mjt.ch.MapData;
-import uk.me.mjt.ch.Node;
-import uk.me.mjt.ch.Preconditions;
-import uk.me.mjt.ch.TurnRestriction;
+
+import uk.me.mjt.ch.*;
+import uk.me.mjt.ch.impl.MapDataJImpl;
 import uk.me.mjt.ch.status.MonitoredProcess;
 import uk.me.mjt.ch.status.StatusMonitor;
 
@@ -16,7 +12,12 @@ public class BinaryFormat {
     private static final long MAX_FILE_VERSION_SUPPORTED = 6;
     private static final long MIN_FILE_VERSION_SUPPORTED = 5;
     private static final long FILE_VERSION_WRITTEN = MAX_FILE_VERSION_SUPPORTED;
-    
+    private final DirectedEdgeFactory edgeFactory;
+
+    public BinaryFormat(DirectedEdgeFactory edgeFactory) {
+        this.edgeFactory = edgeFactory;
+    }
+
     public MapData read(String nodeFile, String wayFile, StatusMonitor monitor) throws IOException {
         try ( FileInputStream nodesIn = new FileInputStream(nodeFile);
               FileInputStream waysIn = new FileInputStream(wayFile)) {
@@ -48,7 +49,7 @@ public class BinaryFormat {
             loadEdgesGivenNodes(nodesById, dis, monitor);
         }
         
-        MapData md = new MapData(nodesById, turnRestrictions, monitor);
+        MapData md = new MapDataJImpl(nodesById, turnRestrictions, monitor);
         md.validate(monitor);
         return md;
     }
@@ -164,9 +165,9 @@ public class BinaryFormat {
                     DirectedEdge firstEdge = edgesById.get(firstEdgeId);
                     DirectedEdge secondEdge = edgesById.get(secondEdgeId);
                     Preconditions.checkNoneNull(firstEdge,secondEdge);
-                    de = new DirectedEdge(edgeId, sourceDataEdgeId, firstEdge, secondEdge);
+                    de = edgeFactory.create(edgeId, sourceDataEdgeId, firstEdge, secondEdge);
                 } else {
-                    de = new DirectedEdge(edgeId, sourceDataEdgeId, fromNode, toNode, driveTimeMs, (isAccessOnly?AccessOnly.TRUE:AccessOnly.FALSE));
+                    de = edgeFactory.create(edgeId, sourceDataEdgeId, fromNode, toNode, driveTimeMs, (isAccessOnly?AccessOnly.TRUE:AccessOnly.FALSE));
                 }
                 
                 fromNode.edgesFrom.add(de);
@@ -225,31 +226,31 @@ public class BinaryFormat {
     }
         
     private void writeEdgeRecursively(DirectedEdge de, HashSet<Long> alreadyWritten, DataOutputStream dos) throws IOException {
-        if (de==null || alreadyWritten.contains(de.edgeId)) {
+        if (de==null || alreadyWritten.contains(de.edgeId())) {
             return;
         }
         
-        writeEdgeRecursively(de.first,alreadyWritten,dos);
-        writeEdgeRecursively(de.second,alreadyWritten,dos);
+        writeEdgeRecursively(de.first(),alreadyWritten,dos);
+        writeEdgeRecursively(de.second(),alreadyWritten,dos);
         
-        dos.writeLong(de.edgeId);
-        dos.writeLong(de.sourceDataEdgeId);
-        dos.writeLong(de.from.nodeId);
-        dos.writeLong(de.to.nodeId);
-        dos.writeInt(de.driveTimeMs);
+        dos.writeLong(de.edgeId());
+        dos.writeLong(de.sourceDataEdgeId());
+        dos.writeLong(de.from().nodeId);
+        dos.writeLong(de.to().nodeId);
+        dos.writeInt(de.driveTimeMs());
         
-        int properties = (de.isShortcut()?0x01:0x00) | (de.accessOnly==AccessOnly.TRUE?0x02:0x00);
+        int properties = (de.isShortcut()?0x01:0x00) | (de.accessOnly()==AccessOnly.TRUE?0x02:0x00);
         dos.writeByte(properties);
         
         if (de.isShortcut()) {
-            dos.writeLong(de.first.edgeId);
-            dos.writeLong(de.second.edgeId);
+            dos.writeLong(de.first().edgeId());
+            dos.writeLong(de.second().edgeId());
         } else {
             dos.writeLong(0);
             dos.writeLong(0);
         }
         
-        alreadyWritten.add(de.edgeId);
+        alreadyWritten.add(de.edgeId());
     }
     
     private HashSet<TurnRestriction> readTurnRestrictions(DataInputStream source) throws IOException {

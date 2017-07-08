@@ -4,7 +4,6 @@ package uk.me.mjt.ch;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 
 
 public class Util {
@@ -90,20 +89,20 @@ public class Util {
     }
     
     private static boolean edgesEqual(DirectedEdge a, DirectedEdge b) {
-        return (a.edgeId == b.edgeId
-                && a.sourceDataEdgeId == b.sourceDataEdgeId
-                && a.contractionDepth == b.contractionDepth
-                && a.driveTimeMs == b.driveTimeMs
-                && a.accessOnly == b.accessOnly
-                && shallowEquals(a.from,b.from)
-                && shallowEquals(a.to,b.to));
+        return (a.edgeId() == b.edgeId()
+                && a.sourceDataEdgeId() == b.sourceDataEdgeId()
+                && a.contractionDepth() == b.contractionDepth()
+                && a.driveTimeMs() == b.driveTimeMs()
+                && a.accessOnly() == b.accessOnly()
+                && shallowEquals(a.from(),b.from())
+                && shallowEquals(a.to(),b.to()));
     }
     
     public static void sortEdgeArrays(ArrayList<DirectedEdge> toSort) {
         Comparator c = new Comparator<DirectedEdge>() {
             @Override
             public int compare(DirectedEdge o1, DirectedEdge o2) {
-                return Long.compare(o1.edgeId, o2.edgeId);
+                return Long.compare(o1.edgeId(), o2.edgeId());
             }
         };
         Collections.sort(toSort, c);

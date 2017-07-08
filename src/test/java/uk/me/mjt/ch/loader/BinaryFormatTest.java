@@ -6,55 +6,54 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import static org.junit.Assert.*;
-import uk.me.mjt.ch.AccessOnly;
-import uk.me.mjt.ch.DirectedEdge;
-import uk.me.mjt.ch.MakeTestData;
-import uk.me.mjt.ch.MapData;
-import uk.me.mjt.ch.Node;
-import uk.me.mjt.ch.Util;
+
+import uk.me.mjt.ch.*;
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
 import uk.me.mjt.ch.status.MonitoredProcess;
 import uk.me.mjt.ch.status.StdoutStatusMonitor;
-import static uk.me.mjt.ch.status.StdoutStatusMonitor.toString;
 
 public class BinaryFormatTest {
-    
+
+    DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+
     public BinaryFormatTest() {
     }
     
 
     @org.junit.Test
     public void testLoopback() throws Exception {
-        MapData testData = MakeTestData.makeSimpleThreeEntry();
+        MapData testData = makeTestData.makeSimpleThreeEntry();
         writeAndReadBack(testData);
     }
     
     @org.junit.Test
     public void testLoopbackAccessOnly() throws Exception {
-        MapData testData = MakeTestData.makePartlyAccessOnlyRing();
+        MapData testData = makeTestData.makePartlyAccessOnlyRing();
         writeAndReadBack(testData);
     }
     
     @org.junit.Test
     public void testLoopbackGate() throws Exception {
-        MapData testData = MakeTestData.makeGatedRow();
+        MapData testData = makeTestData.makeGatedRow();
         writeAndReadBack(testData);
     }
     
     @org.junit.Test
     public void testTurnRestricted() throws Exception {
-        MapData testData = MakeTestData.makeTurnRestrictedH();
+        MapData testData = makeTestData.makeTurnRestrictedH();
         writeAndReadBack(testData);
     }
     
     @org.junit.Test
     public void testSynthetic() throws Exception {
-        writeAndReadBack(MakeTestData.makeSimpleThreeEntry());
+        writeAndReadBack(makeTestData.makeSimpleThreeEntry());
     }
     
     @org.junit.Test
     public void testSourceDataEdgeId() throws Exception {
-        MapData testData = MakeTestData.makeSimpleThreeEntry();
-        DirectedEdge de = new DirectedEdge(100L, 200L, testData.getNodeById(1L), testData.getNodeById(2L), 123, AccessOnly.FALSE);
+        MapData testData = makeTestData.makeSimpleThreeEntry();
+        DirectedEdge de = edgeFactory.create(100L, 200L, testData.getNodeById(1L), testData.getNodeById(2L), 123, AccessOnly.FALSE);
         de.addToToAndFromNodes();
         writeAndReadBack(testData);
     }
@@ -63,8 +62,9 @@ public class BinaryFormatTest {
         ByteArrayOutputStream nodesOut = new ByteArrayOutputStream();
         ByteArrayOutputStream waysOut = new ByteArrayOutputStream();
         ByteArrayOutputStream turnRestrictionsOut = new ByteArrayOutputStream();
-        
-        BinaryFormat instance = new BinaryFormat();
+        DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+
+        BinaryFormat instance = new BinaryFormat(edgeFactory);
         
         instance.write(testData, new DataOutputStream(nodesOut), new DataOutputStream(waysOut), new DataOutputStream(turnRestrictionsOut));
         
@@ -90,9 +90,10 @@ public class BinaryFormatTest {
         dos.writeLong(-1);
         dos.writeChars("some other data");
         dos.close();
-        
+        DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        BinaryFormat instance = new BinaryFormat();
+        BinaryFormat instance = new BinaryFormat(edgeFactory);
         instance.read(bais, bais, bais, new StdoutStatusMonitor());
     }
     

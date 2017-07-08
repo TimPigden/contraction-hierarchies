@@ -4,8 +4,9 @@ package uk.me.mjt.ch;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
+
 import uk.me.mjt.ch.TurnRestriction.TurnRestrictionType;
+import uk.me.mjt.ch.impl.MapDataJImpl;
 
 
 public class AdjustGraphForRestrictions {
@@ -18,25 +19,27 @@ public class AdjustGraphForRestrictions {
     
     private final MapData md;
     private final Node startNode;
+    private final DirectedEdgeFactory edgeFactory;
     private Set<Long> implicitAccessOnlyNodeIds = null;
     private Set<Long> implicitGatedNodeIds = null;
     private Set<NodeAndState> interestingUturnOrigins = null;
     
-    public static MapData makeNewGraph(MapData md, Node startNode) {
-        return new AdjustGraphForRestrictions(md, startNode).adjustGraph();
+    public static MapData makeNewGraph(MapData md, Node startNode, DirectedEdgeFactory edgeFactory) {
+        return new AdjustGraphForRestrictions(md, startNode, edgeFactory).adjustGraph();
     }
     
-    public static String testRestrictedDijkstra(MapData md, Node startNode, Node endNode) {
-        return new AdjustGraphForRestrictions(md, null).testRestrictedDijkstraInternal(startNode, endNode);
+    public static String testRestrictedDijkstra(MapData md, Node startNode, Node endNode, DirectedEdgeFactory edgeFactory) {
+        return new AdjustGraphForRestrictions(md, null, edgeFactory).testRestrictedDijkstraInternal(startNode, endNode);
     }
     
-    private AdjustGraphForRestrictions(MapData md, Node startNode) {
+    private AdjustGraphForRestrictions(MapData md, Node startNode, DirectedEdgeFactory edgeFactory) {
         Preconditions.checkNoneNull(md);
         if (startNode != null) {
             Preconditions.require(startNode.barrier==Barrier.FALSE);
         }
         this.md = md;
         this.startNode = startNode;
+        this.edgeFactory = edgeFactory;
     }
     
     public MapData adjustGraph() {
@@ -48,7 +51,7 @@ public class AdjustGraphForRestrictions {
         Map<NodeAndState,Node> newNodes = makeNewNodes(nodeStates);
         makeNewDirectedEdges(newNodes, shortPathElements);
         
-        return new MapData(newNodes.values());
+        return new MapDataJImpl(newNodes.values());
     }
     
     private static Set<NodeAndState> findUniqueNodeAndStates(Set<ShortPathElement> solutions) {
@@ -79,8 +82,8 @@ public class AdjustGraphForRestrictions {
             Node newToNode = newNodes.get(sourceSPE.to);
             
             DirectedEdge sourceEdge = sourceSPE.via;
-            if (sourceEdge.hasPlaceholderId() && (sourceEdge.driveTimeMs==0 || sourceSPE.to.uTurnState==UTurnState.UNRESTRICTED)) {
-                DirectedEdge.makeEdgeWithNoSourceDataEquivalent(newEdgeId++, newFromNode, newToNode, sourceEdge.driveTimeMs, AccessOnly.FALSE)
+            if (sourceEdge.hasPlaceholderId() && (sourceEdge.driveTimeMs()==0 || sourceSPE.to.uTurnState==UTurnState.UNRESTRICTED)) {
+                edgeFactory.makeEdgeWithNoSourceDataEquivalent(newEdgeId++, newFromNode, newToNode, sourceEdge.driveTimeMs(), AccessOnly.FALSE)
                         .addToToAndFromNodes();
             } else {
                 sourceEdge.cloneWithEdgeIdAndFromToNodeAddingToLists(newEdgeId++, newFromNode, newToNode, AccessOnly.FALSE);
@@ -257,11 +260,11 @@ public class AdjustGraphForRestrictions {
     
     private static String solutionAsString(ShortPathElement spe) {
         if (spe.previous==null) {
-            return spe.from.node.sourceDataNodeId + "--" + spe.via.driveTimeMs + "-->" + spe.to.node.sourceDataNodeId;
+            return spe.from.node.sourceDataNodeId + "--" + spe.via.driveTimeMs() + "-->" + spe.to.node.sourceDataNodeId;
         } else if (isPublicToPrivateEdge(spe.via) ) {
             return solutionAsString(spe.previous);
         } else {
-            return solutionAsString(spe.previous) + "--" + spe.via.driveTimeMs + "-->" + spe.to.node.sourceDataNodeId;
+            return solutionAsString(spe.previous) + "--" + spe.via.driveTimeMs() + "-->" + spe.to.node.sourceDataNodeId;
         }
     }
     
@@ -390,7 +393,7 @@ public class AdjustGraphForRestrictions {
                 if (neighborNodeInfo.visited)
                     continue;
                 
-                int newTime = thisNodeInfo.minDriveTime + edge.driveTimeMs;
+                int newTime = thisNodeInfo.minDriveTime + edge.driveTimeMs();
                 int previousTime = neighborNodeInfo.minDriveTime;
                 
                 if (newTime < previousTime) {
@@ -495,13 +498,13 @@ public class AdjustGraphForRestrictions {
         
         
         public String toString() {
-            return node + " with " + activeTurnRestrictions + " AO." + accessOnlyState + " Barrier." + gateState + " U." + uTurnState + " from " + (arrivingViaEdge==null?"null":arrivingViaEdge.edgeId);
+            return node + " with " + activeTurnRestrictions + " AO." + accessOnlyState + " Barrier." + gateState + " U." + uTurnState + " from " + (arrivingViaEdge==null?"null":arrivingViaEdge.edgeId());
         }
     }
     
     private boolean anyEdgesAccessOnly(Node n) {
         for (DirectedEdge de : n.getEdgesFromAndTo()) {
-            if (de.accessOnly == AccessOnly.TRUE) {
+            if (de.accessOnly() == AccessOnly.TRUE) {
                 return true;
             }
         }
@@ -511,7 +514,7 @@ public class AdjustGraphForRestrictions {
     private NodeAndState updateStateIfLegal(DirectedEdge fromEdge, NodeAndState fromNodeState, DirectedEdge toEdge, Multimap<Long,TurnRestriction> turnRestrictionsByStartEdge, DirectedEdge priorFromEdge) {
         Preconditions.checkNoneNull(fromNodeState,toEdge,turnRestrictionsByStartEdge);
         
-        Node toNode = toEdge.to;
+        Node toNode = toEdge.to();
         
         HashSet<TurnRestriction> turnRestrictionsAfter = getUpdatedTurnRestrictionsIfLegal(fromEdge, fromNodeState, toEdge, turnRestrictionsByStartEdge, priorFromEdge);
         if (turnRestrictionsAfter==null) return null;
@@ -535,7 +538,7 @@ public class AdjustGraphForRestrictions {
         }
         
         HashSet<TurnRestriction> turnRestrictionsAfter = new HashSet();
-        turnRestrictionsAfter.addAll(turnRestrictionsByStartEdge.get(toEdge.edgeId));
+        turnRestrictionsAfter.addAll(turnRestrictionsByStartEdge.get(toEdge.edgeId()));
         
         if (fromEdge == null) { // Start node.
             return turnRestrictionsAfter;
@@ -547,8 +550,8 @@ public class AdjustGraphForRestrictions {
         for (TurnRestriction tr : fromNode.activeTurnRestrictions) {
             List<Long> edgeIds = tr.directedEdgeIds;
             
-            int fromEdgeIdx = edgeIds.indexOf(priorFromEdge.edgeId);
-            int toEdgeIdx = edgeIds.indexOf(toEdge.edgeId);
+            int fromEdgeIdx = edgeIds.indexOf(priorFromEdge.edgeId());
+            int toEdgeIdx = edgeIds.indexOf(toEdge.edgeId());
             
             boolean endOfRestriction = (fromEdgeIdx==edgeIds.size()-2);
             boolean restrictionCoversMove = (fromEdgeIdx+1==toEdgeIdx);
@@ -581,22 +584,22 @@ public class AdjustGraphForRestrictions {
     }
     
     private AccessOnlyState updateAccessOnlyStateIfLegal(NodeAndState fromNode, DirectedEdge toEdge) {
-        boolean implicitPermitted = (implicitAccessOnlyNodeIds==null || implicitAccessOnlyNodeIds.contains(toEdge.to.nodeId));
+        boolean implicitPermitted = (implicitAccessOnlyNodeIds==null || implicitAccessOnlyNodeIds.contains(toEdge.to().nodeId));
                 
         if (fromNode.accessOnlyState==AccessOnlyState.SOURCE) {
-            if (toEdge.accessOnly==AccessOnly.TRUE)
+            if (toEdge.accessOnly()==AccessOnly.TRUE)
                 return AccessOnlyState.SOURCE;
-            else if (implicitAccessOnlyNodeIds!=null && (implicitAccessOnlyNodeIds.contains(toEdge.to.nodeId)||implicitAccessOnlyNodeIds.contains(fromNode.node.nodeId)) )
+            else if (implicitAccessOnlyNodeIds!=null && (implicitAccessOnlyNodeIds.contains(toEdge.to().nodeId)||implicitAccessOnlyNodeIds.contains(fromNode.node.nodeId)) )
                 return AccessOnlyState.SOURCE;
             else
                 return AccessOnlyState.NO;
         } else if (fromNode.accessOnlyState==AccessOnlyState.NO) {
-            if (toEdge.accessOnly==AccessOnly.TRUE)
+            if (toEdge.accessOnly()==AccessOnly.TRUE)
                 return AccessOnlyState.DESTINATION;
             else
                 return AccessOnlyState.NO;
         } else if (fromNode.accessOnlyState==AccessOnlyState.DESTINATION) {
-            if (toEdge.accessOnly==AccessOnly.TRUE)
+            if (toEdge.accessOnly()==AccessOnly.TRUE)
                 return AccessOnlyState.DESTINATION;
             else if (implicitPermitted)
                 return AccessOnlyState.IMPLICIT;
@@ -623,15 +626,15 @@ public class AdjustGraphForRestrictions {
     }
     
     private boolean isUnpaidUturn(DirectedEdge fromEdge, DirectedEdge toEdge) {
-        return (fromEdge.from == toEdge.to);
+        return (fromEdge.from() == toEdge.to());
     }
     
     private boolean isUturnEdge(DirectedEdge de) {
-        return (de.from==de.to && de.hasPlaceholderId() && de.driveTimeMs==U_TURN_DELAY_MILLIS);
+        return (de.from()==de.to() && de.hasPlaceholderId() && de.driveTimeMs()==U_TURN_DELAY_MILLIS);
     }
     
     private static boolean isPublicToPrivateEdge(DirectedEdge de) {
-        return (de.from==de.to && de.hasPlaceholderId() && de.driveTimeMs==0 && de.accessOnly==AccessOnly.TRUE);
+        return (de.from()==de.to() && de.hasPlaceholderId() && de.driveTimeMs()==0 && de.accessOnly()==AccessOnly.TRUE);
     }
     
     private DirectedEdge makeUTurnDelayEdge(NodeAndState nas) {
@@ -641,11 +644,11 @@ public class AdjustGraphForRestrictions {
         else
             ao = AccessOnly.FALSE;
         
-        return DirectedEdge.makeDelayEdge(nas.node, U_TURN_DELAY_MILLIS, ao);
+        return edgeFactory.makeDelayEdge(nas.node, U_TURN_DELAY_MILLIS, ao);
     }
     
     private DirectedEdge makePublicToAccessRestrictedEdge(NodeAndState nas) {
-        return DirectedEdge.makeDelayEdge(nas.node, 0, AccessOnly.TRUE);
+        return edgeFactory.makeDelayEdge(nas.node, 0, AccessOnly.TRUE);
     }
     
     private class ShortPathElement {
@@ -663,7 +666,7 @@ public class AdjustGraphForRestrictions {
             this.to = to;
             this.via = via;
             this.previous = previous;
-            this.driveTimeMs=via.driveTimeMs+(previous==null?0:previous.driveTimeMs);
+            this.driveTimeMs=via.driveTimeMs()+(previous==null?0:previous.driveTimeMs);
             
             int hash = 7;
             hash = 37 * hash + Objects.hashCode(this.from);
@@ -706,7 +709,7 @@ public class AdjustGraphForRestrictions {
         if (n.arrivingViaEdge==null) {
             sb.append("\\nOrigin node");
         } else {
-            sb.append("\\nfrom ").append(n.arrivingViaEdge.from.nodeId);
+            sb.append("\\nfrom ").append(n.arrivingViaEdge.from().nodeId);
         }
         
         return sb.toString();

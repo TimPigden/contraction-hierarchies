@@ -32,8 +32,8 @@ public class Puml {
     
     private static String edgeToPuml(DirectedEdge de) {
         return String.format("%s --> %s : %s\n",
-                nodeToString(de.from),
-                nodeToString(de.to),
+                nodeToString(de.from()),
+                nodeToString(de.to()),
                 edgeToString(de));
     }
     
@@ -47,12 +47,12 @@ public class Puml {
     
     private static String edgeToString(DirectedEdge de) {
         String s;
-        if (de.edgeId==de.sourceDataEdgeId) {
-            s="Edge " + de.edgeId;
+        if (de.edgeId()==de.sourceDataEdgeId()) {
+            s="Edge " + de.edgeId();
         } else {
-            s="Edge " + de.edgeId + "\\nOriginally " + de.sourceDataEdgeId;
+            s="Edge " + de.edgeId() + "\\nOriginally " + de.sourceDataEdgeId();
         }
-        return s+ "\\ncost " + de.driveTimeMs + " ms" + (de.accessOnly==AccessOnly.TRUE?"\\naccess only":"");
+        return s+ "\\ncost " + de.driveTimeMs() + " ms" + (de.accessOnly()==AccessOnly.TRUE?"\\naccess only":"");
     }
 
 }

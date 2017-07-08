@@ -19,11 +19,14 @@ public class GraphContractor {
     private long nodePreContractChecks = 0;
     private long nodePreContractChecksPassed = 0;
     private long millisSpentOnContractionOrdering = 0;
+
+    private final DirectedEdgeFactory edgeFactory;
     
     private ExecutorService es = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     
-    public GraphContractor(MapData allNodes) {
+    public GraphContractor(MapData allNodes, DirectedEdgeFactory edgeFactory) {
         this.allNodes = allNodes;
+        this.edgeFactory = edgeFactory;
     }
 
     private int getEdgeRemovedCount(Node n) {
@@ -39,8 +42,8 @@ public class GraphContractor {
     public void contractNode(Node n, int order, ArrayList<DirectedEdge> shortcuts) {
         for (DirectedEdge s : shortcuts) {
             DirectedEdge newShortcut = s.cloneWithEdgeId(allNodes.getEdgeIdCounter().incrementAndGet());
-            newShortcut.from.edgesFrom.add(newShortcut);
-            newShortcut.to.edgesTo.add(newShortcut);
+            newShortcut.from().edgesFrom.add(newShortcut);
+            newShortcut.to().edgesTo.add(newShortcut);
         }
         n.contractionOrder = order;
     }
@@ -52,27 +55,27 @@ public class GraphContractor {
         HashSet<Node> destinationNodes = new HashSet<Node>();
         int maxOutTime = 0;
         for (DirectedEdge outgoing : n.edgesFrom) {
-            if (!outgoing.to.isContracted()) {
-                destinationNodes.add(outgoing.to);
-                if (outgoing.driveTimeMs > maxOutTime)
-                    maxOutTime = outgoing.driveTimeMs;
+            if (!outgoing.to().isContracted()) {
+                destinationNodes.add(outgoing.to());
+                if (outgoing.driveTimeMs() > maxOutTime)
+                    maxOutTime = outgoing.driveTimeMs();
             }
         }
         
         for (DirectedEdge incoming : n.edgesTo) {
-            Node startNode = incoming.from;
+            Node startNode = incoming.from();
             if (startNode.isContracted())
                 continue;
             
             List<DijkstraSolution> routed = Dijkstra.dijkstrasAlgorithm(
                     startNode,
                     new HashSet<>(destinationNodes),
-                    incoming.driveTimeMs+maxOutTime,
+                    incoming.driveTimeMs()+maxOutTime,
                     Direction.FORWARDS);
             
             for (DijkstraSolution ds : routed) {
                 if (ds.nodes.size() == 3 && ds.nodes.get(1)==n) {
-                    shortcuts.add(new DirectedEdge(
+                    shortcuts.add(edgeFactory.create(
                             ds.getFirstNode(),
                             ds.getLastNode(),
                             ds.totalDriveTimeMs,
@@ -239,7 +242,7 @@ public class GraphContractor {
     public static int getMaxContractionDepth(List<DirectedEdge> de) {
         int maxContractionDepth = 0;
         for (DirectedEdge o : de) {
-            maxContractionDepth = Math.max(maxContractionDepth, o.contractionDepth);
+            maxContractionDepth = Math.max(maxContractionDepth, o.contractionDepth());
         }
         return maxContractionDepth;
     }

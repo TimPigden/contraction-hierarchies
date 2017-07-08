@@ -4,21 +4,22 @@ package uk.me.mjt.ch.cache;
 import java.nio.ByteBuffer;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import uk.me.mjt.ch.DijkstraSolution;
-import uk.me.mjt.ch.GraphContractor;
-import uk.me.mjt.ch.MakeTestData;
-import uk.me.mjt.ch.MapData;
-import uk.me.mjt.ch.Node;
+
+import uk.me.mjt.ch.*;
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
 
 public class BinaryCacheTest {
     
     MapData graph;
     GraphContractor instance;
     BinaryCache cache;
+    DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+
 
     public BinaryCacheTest() {
-        graph = MakeTestData.makeLadder(2,10);
-        instance = new GraphContractor(graph);
+        graph = makeTestData.makeLadder(2,10);
+        instance = new GraphContractor(graph, edgeFactory);
         instance.initialiseContractionOrder();
         instance.contractAll();
         cache = new BinaryCache();

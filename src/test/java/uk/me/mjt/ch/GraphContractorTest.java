@@ -2,18 +2,21 @@ package uk.me.mjt.ch;
 
 import java.util.HashMap;
 import org.junit.Test;
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+
 import static org.junit.Assert.*;
 
 public class GraphContractorTest {
+    DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory);
 
     public GraphContractorTest() {
     }
-
     @Test
     public void testContractAll() {
-        MapData graph = MakeTestData.makeLadder(2,10);
+        MapData graph = makeTestData.makeLadder(2,10);
         
-        GraphContractor instance = new GraphContractor(graph);
+        GraphContractor instance = new GraphContractor(graph, edgeFactory);
         instance.initialiseContractionOrder();
         instance.contractAll();
         
@@ -31,9 +34,9 @@ public class GraphContractorTest {
     
     @Test
     public void testAllToAll() {
-        MapData graph = MakeTestData.makeLadder(2,10);
+        MapData graph = makeTestData.makeLadder(2,10);
         
-        GraphContractor instance = new GraphContractor(graph);
+        GraphContractor instance = new GraphContractor(graph, edgeFactory);
         instance.initialiseContractionOrder();
         instance.contractAll();
         

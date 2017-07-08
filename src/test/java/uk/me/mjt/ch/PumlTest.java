@@ -3,6 +3,8 @@ package uk.me.mjt.ch;
 
 import java.util.Collection;
 import org.junit.Test;
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+
 import static org.junit.Assert.*;
 
 public class PumlTest {
@@ -13,7 +15,10 @@ public class PumlTest {
     @Test
     public void testForNodes() {
         System.out.println("forNodes");
-        MapData a = MakeTestData.makeSimpleThreeEntry();
+        DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
+        MakeTestData makeTestData = new MakeTestData(edgeFactory);
+
+        MapData a = makeTestData.makeSimpleThreeEntry();
         
         String result = Puml.forNodes(a.getAllNodes());
         System.out.println(result);

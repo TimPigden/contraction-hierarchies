@@ -19,7 +19,7 @@ public class GeoJson {
         }
         
         boolean shouldPrintEdge(DirectedEdge de) {
-            return nodeInBbox(de.from) || nodeInBbox(de.to);
+            return nodeInBbox(de.from()) || nodeInBbox(de.to());
         }
         
         boolean nodeInBbox(Node n) {
@@ -73,7 +73,7 @@ public class GeoJson {
     public static String singleDirectedEdge(DirectedEdge de) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"type\": \"Feature\",\"properties\": {},\"geometry\": {\"type\": \"LineString\",\"coordinates\": [");
-        sb.append(String.format("[%.6f,%.6f],[%.6f,%.6f]", de.from.lon, de.from.lat, de.to.lon, de.to.lat));
+        sb.append(String.format("[%.6f,%.6f],[%.6f,%.6f]", de.from().lon, de.from().lat, de.to().lon, de.to().lat));
         sb.append("]}}");
         return sb.toString();
     }

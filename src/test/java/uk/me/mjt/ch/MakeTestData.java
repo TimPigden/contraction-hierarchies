@@ -2,23 +2,31 @@
 package uk.me.mjt.ch;
 
 import java.util.*;
+
+import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.MapDataJImpl;
 import uk.me.mjt.ch.status.DiscardingStatusMonitor;
 
 public class MakeTestData {
+    final DirectedEdgeFactory edgeFactory;
     
-    public static MapData makeSimpleThreeEntry() {
+    public MakeTestData(DirectedEdgeFactory edgeFactory) {
+        this.edgeFactory = edgeFactory;
+    }
+
+    public MapData makeSimpleThreeEntry() {
         HashMap<Long,Node> result = makeRow(3);
         Node.sortNeighborListsAll(result.values());
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
-    public static MapData makeSimpleFiveEntry() {
+    public MapData makeSimpleFiveEntry() {
         HashMap<Long,Node> result = makeRow(5);
         Node.sortNeighborListsAll(result.values());
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
-    public static MapData makeLadder(int rowCount, int colCount) {
+    public MapData makeLadder(int rowCount, int colCount) {
         HashMap<Long,Node> result = new HashMap();
         
         float rowSpacing = Math.min(0.05f/rowCount,0.05f/colCount);
@@ -49,10 +57,10 @@ public class MakeTestData {
         }
         
         Node.sortNeighborListsAll(result.values());
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
 
-    private static long ladderNodeId(int row, int col, int rowCount, int colCount) {
+    private long ladderNodeId(int row, int col, int rowCount, int colCount) {
         if (row >= rowCount || col >= colCount || row < 0 || col < 0) {
             return Integer.MIN_VALUE;
         } else {
@@ -75,7 +83,7 @@ public class MakeTestData {
      *   \---4--/
      * </pre>
      */
-    public static MapData makePartlyAccessOnlyRing() {
+    public MapData makePartlyAccessOnlyRing() {
         HashMap<Long,Node> result = makeRow(7);
         
         Node firstNode = result.get(1L);
@@ -85,7 +93,7 @@ public class MakeTestData {
         makeEdgeAndAddToNodes(5001,lastNode,firstNode,1000, AccessOnly.TRUE);
         
         Node.sortNeighborListsAll(result.values());
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
     /**
@@ -104,11 +112,11 @@ public class MakeTestData {
      *  5
      * </pre>
      */
-    public static MapData makePartlyAccessOnlyThorn() {
+    public MapData makePartlyAccessOnlyThorn() {
         HashMap<Long,Node> result = makeRow(5);
         makeEdgeAndAddToNodes(5000,result.get(2L),result.get(4L),1000, AccessOnly.TRUE);
         Node.sortNeighborListsAll(result.values());
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
     /**
@@ -125,7 +133,7 @@ public class MakeTestData {
      *  5
      * </pre>
      */
-    public static MapData makeGatedThorn() {
+    public MapData makeGatedThorn() {
         HashMap<Long,Node> result = makeRow(5);
         Node newNode = new Node(10, 52f, 0.1f, Barrier.TRUE);
         result.put(newNode.nodeId, newNode);
@@ -133,7 +141,7 @@ public class MakeTestData {
         makeEdgeAndAddToNodes(5000,result.get(2L),newNode,500, AccessOnly.FALSE);
         makeEdgeAndAddToNodes(5001,newNode,result.get(4L),500, AccessOnly.FALSE);
         Node.sortNeighborListsAll(result.values());
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
     /**
@@ -146,7 +154,7 @@ public class MakeTestData {
      *   3   6
      * </pre>
      */
-    public static MapData makeTurnRestrictedH() {
+    public MapData makeTurnRestrictedH() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
             nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
@@ -166,7 +174,7 @@ public class MakeTestData {
         TurnRestriction tr = new TurnRestriction(12345, TurnRestriction.TurnRestrictionType.NOT_ALLOWED, noRight);
         
         Node.sortNeighborListsAll(nodes.values());
-        return new MapData(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
+        return new MapDataJImpl(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
     }
     
     /**
@@ -179,7 +187,7 @@ public class MakeTestData {
      *   3   6
      * </pre>
      */
-    public static MapData makeTurnRestrictedA() {
+    public MapData makeTurnRestrictedA() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
             nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
@@ -201,7 +209,7 @@ public class MakeTestData {
         TurnRestriction tr = new TurnRestriction(12345, TurnRestriction.TurnRestrictionType.NOT_ALLOWED, noRight);
         
         Node.sortNeighborListsAll(nodes.values());
-        return new MapData(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
+        return new MapDataJImpl(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
     }
     
     /**
@@ -222,7 +230,7 @@ public class MakeTestData {
      * 4
      * </pre>
      */
-    public static MapData makeTurnRestrictedThorn() {
+    public MapData makeTurnRestrictedThorn() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
             nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
@@ -237,13 +245,13 @@ public class MakeTestData {
         makeBidirectionalEdgesAndAddToNodes(nodes.get(3L), nodes.get(6L));
         
         List<Long> restriction = new ArrayList();
-        restriction.add(edgeBetween(nodes.get(2L), nodes.get(3L)).edgeId);
-        restriction.add(edgeBetween(nodes.get(3L), nodes.get(6L)).edgeId);
+        restriction.add(edgeBetween(nodes.get(2L), nodes.get(3L)).edgeId());
+        restriction.add(edgeBetween(nodes.get(3L), nodes.get(6L)).edgeId());
         
         TurnRestriction tr = new TurnRestriction(12345, TurnRestriction.TurnRestrictionType.NOT_ALLOWED, restriction);
         
         Node.sortNeighborListsAll(nodes.values());
-        return new MapData(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
+        return new MapDataJImpl(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
     }
     
     /**
@@ -262,7 +270,7 @@ public class MakeTestData {
      *       6
      * </pre>
      */
-    public static MapData makeOffsetCrossroadWithOnlyStraightOn() {
+    public MapData makeOffsetCrossroadWithOnlyStraightOn() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
             nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
@@ -278,19 +286,19 @@ public class MakeTestData {
         makeBidirectionalEdgesAndAddToNodes(nodes.get(3L), nodes.get(6L));
         
         List<Long> restriction = new ArrayList();
-        restriction.add(edgeBetween(nodes.get(1L), nodes.get(2L)).edgeId);
-        restriction.add(edgeBetween(nodes.get(2L), nodes.get(3L)).edgeId);
-        restriction.add(edgeBetween(nodes.get(3L), nodes.get(4L)).edgeId);
+        restriction.add(edgeBetween(nodes.get(1L), nodes.get(2L)).edgeId());
+        restriction.add(edgeBetween(nodes.get(2L), nodes.get(3L)).edgeId());
+        restriction.add(edgeBetween(nodes.get(3L), nodes.get(4L)).edgeId());
         TurnRestriction tr = new TurnRestriction(12345, TurnRestriction.TurnRestrictionType.ONLY_ALLOWED, restriction);
         
         Node.sortNeighborListsAll(nodes.values());
-        return new MapData(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
+        return new MapDataJImpl(nodes,Collections.singleton(tr), new DiscardingStatusMonitor());
     }
     
-    private static DirectedEdge edgeBetween(Node from, Node to) {
+    private DirectedEdge edgeBetween(Node from, Node to) {
         DirectedEdge result = null;
         for (DirectedEdge de : from.edgesFrom) {
-            if (de.from==from && de.to==to) {
+            if (de.from() ==from && de.to() ==to) {
                 if (result == null)
                     result = de;
                 else
@@ -300,26 +308,26 @@ public class MakeTestData {
         return result;
     }
     
-    private static void makeBidirectionalEdgesAndAddToNodes(Node from, Node to ) {
+    private void makeBidirectionalEdgesAndAddToNodes(Node from, Node to ) {
         makeUnidirectionalEdgesAndAddToNodes(from,to);
         makeUnidirectionalEdgesAndAddToNodes(to,from);
     }
     
-    private static DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to) {
+    private DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to) {
         return makeUnidirectionalEdgesAndAddToNodes(from, to, AccessOnly.FALSE);
     }
     
-    private static DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to, AccessOnly accessOnly) {
+    private DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to, AccessOnly accessOnly) {
         int driveTimeMs = 1000;
         return makeUnidirectionalEdgesAndAddToNodes(from, to, accessOnly, driveTimeMs);
     }
-    private static DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to, AccessOnly accessOnly, int driveTimeMs) {
+    private DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to, AccessOnly accessOnly, int driveTimeMs) {
         return makeEdgeAndAddToNodes(from.nodeId*1000000+to.nodeId, from, to, driveTimeMs, accessOnly);
     }
     
-    private static DirectedEdge makeEdgeAndAddToNodes(long edgeId, Node from, Node to, int driveTimeMs, AccessOnly accessOnly) {
+    private DirectedEdge makeEdgeAndAddToNodes(long edgeId, Node from, Node to, int driveTimeMs, AccessOnly accessOnly) {
         Preconditions.checkNoneNull(from,to);
-        DirectedEdge de = new DirectedEdge(edgeId, edgeId, from, to, driveTimeMs, accessOnly);
+        DirectedEdge de = edgeFactory.create(edgeId, edgeId, from, to, driveTimeMs, accessOnly);
         de.addToToAndFromNodes();
         return de;
     }
@@ -327,10 +335,10 @@ public class MakeTestData {
     /**
      * Makes a row of three nodes, with the middle node marked as a barrier.
      */
-    public static MapData makeGatedRow() {
+    public MapData makeGatedRow() {
         HashMap<Long,Node> result = makeRow(3);
         result.get(2L).barrier = Barrier.TRUE;
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
     /**
@@ -338,11 +346,11 @@ public class MakeTestData {
      * 
      * 1←→2←→3←→4←→5←→6←→7
      */
-    public static MapData makeDoubleGatedRow() {
+    public MapData makeDoubleGatedRow() {
         HashMap<Long,Node> result = makeRow(7);
         result.get(3L).barrier = Barrier.TRUE;
         result.get(5L).barrier = Barrier.TRUE;
-        return new MapData(result);
+        return new MapDataJImpl(result);
     }
     
     /**
@@ -350,7 +358,7 @@ public class MakeTestData {
      * 
      * 1←→2←→3←→4←→5←→6←→7
      */
-    public static MapData makeDoubleAccessOnlyRow() {
+    public MapData makeDoubleAccessOnlyRow() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=7 ; i++) {
             nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
@@ -367,10 +375,10 @@ public class MakeTestData {
         makeUnidirectionalEdgesAndAddToNodes(nodes.get(5L),nodes.get(6L),AccessOnly.TRUE);
         makeUnidirectionalEdgesAndAddToNodes(nodes.get(6L),nodes.get(5L),AccessOnly.TRUE);
         
-        return new MapData(nodes);
+        return new MapDataJImpl(nodes);
     }
     
-    private static HashMap<Long,Node> makeRow(int numberOfNodes) {
+    private HashMap<Long,Node> makeRow(int numberOfNodes) {
         Preconditions.require(numberOfNodes > 0);
         HashMap<Long,Node> result = new HashMap();
         int edgeId = 1000;
