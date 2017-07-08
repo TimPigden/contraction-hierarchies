@@ -36,7 +36,7 @@ public class DijkstraSolution  {
         } else {
             StringBuilder sb = new StringBuilder();
             for (Node n : nodes) {
-                sb.append(n.nodeId).append(",");
+                sb.append(n.nodeId()).append(",");
             }
             sb.append(String.format(" Duration %.2f secs (%.2f mins)", totalDriveTimeMs/1000.0, totalDriveTimeMs/60000.0));
             return sb.toString();

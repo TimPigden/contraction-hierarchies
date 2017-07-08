@@ -1,14 +1,15 @@
 package uk.me.mjt.ch;
 
-import java.util.HashMap;
 import org.junit.Test;
 import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.NodeFactoryJ;
 
 import static org.junit.Assert.*;
 
 public class GraphContractorTest {
     DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
-    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+    NodeFactory nodeFactory = new NodeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory, nodeFactory);
 
     public GraphContractorTest() {
     }

@@ -13,9 +13,11 @@ public class BinaryFormat {
     private static final long MIN_FILE_VERSION_SUPPORTED = 5;
     private static final long FILE_VERSION_WRITTEN = MAX_FILE_VERSION_SUPPORTED;
     private final DirectedEdgeFactory edgeFactory;
+    private final NodeFactory nodeFactory;
 
-    public BinaryFormat(DirectedEdgeFactory edgeFactory) {
+    public BinaryFormat(DirectedEdgeFactory edgeFactory, NodeFactory nodeFactory) {
         this.edgeFactory = edgeFactory;
+        this.nodeFactory = nodeFactory;
     }
 
     public MapData read(String nodeFile, String wayFile, StatusMonitor monitor) throws IOException {
@@ -107,12 +109,13 @@ public class BinaryFormat {
                 boolean isBarrier = (properties&0x02)!=0;
                 double lat = source.readDouble();
                 double lon = source.readDouble();
-                
-                Node n = new Node(nodeId,sourceDataNodeId,(float)lat,(float)lon,(isBarrier?Barrier.TRUE:Barrier.FALSE));
-                n.contractionAllowed = !isBorderNode;
                 if (contractionOrder==Long.MAX_VALUE)
-                    contractionOrder=Node.UNCONTRACTED;
-                n.contractionOrder=(int)contractionOrder;
+                    contractionOrder = Node.UNCONTRACTED ;
+
+                Node n = nodeFactory.create(nodeId,sourceDataNodeId,(float)lat,(float)lon,
+                        (isBarrier?Barrier.TRUE:Barrier.FALSE))
+                 .setContractionAllowed(!isBorderNode)
+                 .setContractionOrder((int) contractionOrder);
                 
                 nodesById.put(nodeId, n);
                 nodesLoadedSoFar++;
@@ -170,8 +173,8 @@ public class BinaryFormat {
                     de = edgeFactory.create(edgeId, sourceDataEdgeId, fromNode, toNode, driveTimeMs, (isAccessOnly?AccessOnly.TRUE:AccessOnly.FALSE));
                 }
                 
-                fromNode.edgesFrom.add(de);
-                toNode.edgesTo.add(de);
+                fromNode.edgesFrom().add(de);
+                toNode.edgesTo().add(de);
                 edgesById.put(edgeId, de);
                 
                 edgesLoadedSoFar++;
@@ -191,17 +194,17 @@ public class BinaryFormat {
         dest.writeLong(toWrite.size());
         
         for (Node n : toWrite) {
-            dest.writeLong(n.nodeId);
-            dest.writeLong(n.sourceDataNodeId);
+            dest.writeLong(n.nodeId());
+            dest.writeLong(n.sourceDataNodeId());
             if (n.isContracted()) { // REVISIT next time we bump the file version, maybe write it as an int?
-                dest.writeLong(n.contractionOrder);
+                dest.writeLong(n.contractionOrder());
             } else {
                 dest.writeLong(Long.MAX_VALUE);
             }
-            int properties = (!n.contractionAllowed?0x01:0x00) | (n.barrier==Barrier.TRUE?0x02:0x00);
+            int properties = (!n.contractionAllowed()?0x01:0x00) | (n.barrier()==Barrier.TRUE?0x02:0x00);
             dest.writeByte(properties);
-            dest.writeDouble(n.lat);
-            dest.writeDouble(n.lon);
+            dest.writeDouble(n.lat());
+            dest.writeDouble(n.lon());
         }
     }
     
@@ -211,7 +214,7 @@ public class BinaryFormat {
         
         HashSet<Long> writtenEdges = new HashSet();
         for (Node n : toWrite) {
-            for (DirectedEdge de : n.edgesFrom) {
+            for (DirectedEdge de : n.edgesFrom()) {
                 writeEdgeRecursively(de, writtenEdges, dos);
             }
         }
@@ -220,7 +223,7 @@ public class BinaryFormat {
     private long calculateTotalEdgeCount(Collection<Node> toWrite) {
         long totalEdgeCount = 0;
         for (Node n : toWrite) {
-            totalEdgeCount += n.edgesFrom.size();
+            totalEdgeCount += n.edgesFrom().size();
         }
         return totalEdgeCount;
     }
@@ -235,8 +238,8 @@ public class BinaryFormat {
         
         dos.writeLong(de.edgeId());
         dos.writeLong(de.sourceDataEdgeId());
-        dos.writeLong(de.from().nodeId);
-        dos.writeLong(de.to().nodeId);
+        dos.writeLong(de.from().nodeId());
+        dos.writeLong(de.to().nodeId());
         dos.writeInt(de.driveTimeMs());
         
         int properties = (de.isShortcut()?0x01:0x00) | (de.accessOnly()==AccessOnly.TRUE?0x02:0x00);

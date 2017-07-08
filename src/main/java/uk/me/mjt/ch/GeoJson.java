@@ -23,7 +23,7 @@ public class GeoJson {
         }
         
         boolean nodeInBbox(Node n) {
-            return (lat1 <= n.lat && n.lat <= lat2 && lon1 <= n.lon && n.lon <= lon2);
+            return (lat1 <= n.lat() && n.lat() <= lat2 && lon1 <= n.lon() && n.lon() <= lon2);
         }
     }
     
@@ -56,7 +56,7 @@ public class GeoJson {
         sb.append("{ \"type\": \"FeatureCollection\", \"features\": [\n");
         
         for (Node n : allNodes) {
-            for (DirectedEdge de : n.edgesFrom) {
+            for (DirectedEdge de : n.edgesFrom()) {
                 if (condition.shouldPrintEdge(de)) {
                     sb.append(singleDirectedEdge(de)).append(",\n");
                 }
@@ -73,7 +73,7 @@ public class GeoJson {
     public static String singleDirectedEdge(DirectedEdge de) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\"type\": \"Feature\",\"properties\": {},\"geometry\": {\"type\": \"LineString\",\"coordinates\": [");
-        sb.append(String.format("[%.6f,%.6f],[%.6f,%.6f]", de.from().lon, de.from().lat, de.to().lon, de.to().lat));
+        sb.append(String.format("[%.6f,%.6f],[%.6f,%.6f]", de.from().lon(), de.from().lat(), de.to().lon(), de.to().lat()));
         sb.append("]}}");
         return sb.toString();
     }
@@ -87,7 +87,7 @@ public class GeoJson {
             StringBuilder sb = new StringBuilder();
             sb.append("{\"type\": \"LineString\",\"coordinates\": [");
             for (Node n : nodes) {
-                sb.append(String.format("[%.6f,%.6f],", n.lon,n.lat));
+                sb.append(String.format("[%.6f,%.6f],", n.lon(),n.lat()));
             }
             sb.deleteCharAt(sb.length()-1);
             sb.append("]}");

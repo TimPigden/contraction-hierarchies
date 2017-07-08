@@ -26,6 +26,7 @@ val optrakXml = "com.optrak" %% "scala-xml" % integration
 val optrakExtended = "com.optrak" %% "extended-data" % integration
 val json4s = "org.json4s" % "json4s-jackson_2.11" % "3.5.0"
 val squants = "org.typelevel"  %% "squants"  % "1.3.0"
+val spire = "org.typelevel" %% "spire" % "0.14.1"
 
 
 val myScalacOptions = Seq(
@@ -59,5 +60,6 @@ utilCore,
 optrakJson,
 scalaTestutils,
 squants,
-junit
+junit,
+  spire
 )

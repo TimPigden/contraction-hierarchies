@@ -47,7 +47,7 @@ public class MapDataJImpl implements MapData {
     }
     
     private void findMaxEdgeId(Node n) {
-        for (DirectedEdge de : n.edgesFrom) {
+        for (DirectedEdge de : n.edgesFrom()) {
             if (de.edgeId() > maxEdgeId.get()) {
                 maxEdgeId.set(de.edgeId());
             }
@@ -55,13 +55,13 @@ public class MapDataJImpl implements MapData {
     }
     
     private void indexBySourceDataNodeId(Node n) {
-        nodesBySourceDataNodeId.add(n.sourceDataNodeId, n);
+        nodesBySourceDataNodeId.add(n.sourceDataNodeId(), n);
     }
     
     private static HashMap<Long,Node> indexNodesById(Collection<Node> nodes) {
         HashMap<Long,Node> hm = new HashMap(nodes.size());
         for (Node n : nodes) {
-            hm.put(n.nodeId, n);
+            hm.put(n.nodeId(), n);
         }
         return hm;
     }
@@ -121,7 +121,7 @@ public class MapDataJImpl implements MapData {
         monitor.updateStatus(MonitoredProcess.VALIDATE_DATA, nodesCheckedSoFar, nodesById.size());
         
         for (Node node : nodesById.values()) {
-            validateSingleNode(node.nodeId);
+            validateSingleNode(node.nodeId());
             checkForDuplicateEdges(node, uniqueEdges);
             
             nodesCheckedSoFar++;
@@ -133,7 +133,7 @@ public class MapDataJImpl implements MapData {
     }
     
     private void checkForDuplicateEdges(Node node, HashMap<Long,DirectedEdge> uniqueEdges) {
-        for (DirectedEdge de : node.edgesFrom) {
+        for (DirectedEdge de : node.edgesFrom()) {
             if (uniqueEdges.containsKey(de.edgeId())) {
                 DirectedEdge prevWithThisId = uniqueEdges.get(de.edgeId());
                 if (de != prevWithThisId) {
@@ -149,22 +149,22 @@ public class MapDataJImpl implements MapData {
     private void validateSingleNode(long nodeId) {
         Node node = nodesById.get(nodeId);
         
-        if (node.nodeId != nodeId)
-            throw new InvalidMapDataException("Node IDs don't match - " + nodeId + " vs " + node.nodeId);
+        if (node.nodeId() != nodeId)
+            throw new InvalidMapDataException("Node IDs don't match - " + nodeId + " vs " + node.nodeId());
         
         validateNeighborLists(node);
         
-        for (DirectedEdge de : node.edgesFrom) {
+        for (DirectedEdge de : node.edgesFrom()) {
             validateSingleEdge(de);
         }
     }
     
     private void validateNeighborLists(Node n) {
-        ArrayList<DirectedEdge> fromBefore = new ArrayList<>(n.edgesFrom);
-        ArrayList<DirectedEdge> toBefore = new ArrayList<>(n.edgesTo);
+        ArrayList<DirectedEdge> fromBefore = new ArrayList<>(n.edgesFrom());
+        ArrayList<DirectedEdge> toBefore = new ArrayList<>(n.edgesTo());
         n.sortNeighborLists();
-        if (!fromBefore.equals(n.edgesFrom) || !toBefore.equals(n.edgesTo)) {
-            throw new InvalidMapDataException("Neigbor lists were unsorted - Node " + n.nodeId);
+        if (!fromBefore.equals(n.edgesFrom()) || !toBefore.equals(n.edgesTo())) {
+            throw new InvalidMapDataException("Neigbor lists were unsorted - Node " + n.nodeId());
         }
     }
     
@@ -172,23 +172,23 @@ public class MapDataJImpl implements MapData {
         if (de.edgeId() > maxEdgeId.get())
             throw new InvalidMapDataException("DirectedEdge ID exceeds maxEdgeId - " + maxEdgeId.get() + " vs " + de.toDetailedString());
         
-        Node from = nodesById.get(de.from().nodeId);
-        Node to = nodesById.get(de.to().nodeId);
+        Node from = nodesById.get(de.from().nodeId());
+        Node to = nodesById.get(de.to().nodeId());
         if (from != de.from())
-            throw new InvalidMapDataException("DirectedEdge from node isn't in nodesById - " + from.nodeId + " for de " + de.edgeId());
+            throw new InvalidMapDataException("DirectedEdge from node isn't in nodesById - " + from.nodeId() + " for de " + de.edgeId());
         if (to != de.to())
-            throw new InvalidMapDataException("DirectedEdge to node isn't in nodesById - " + to.nodeId + " for de " + de.edgeId());
-        if (!from.edgesFrom.contains(de))
-            throw new InvalidMapDataException("From node doesn't have edge in edgesFrom - " + from.nodeId + " for de " + de.edgeId());
-        if (!to.edgesTo.contains(de))
-            throw new InvalidMapDataException("To node doesn't have edge in edgesTo - " + to.nodeId + " for de " + de.edgeId());
+            throw new InvalidMapDataException("DirectedEdge to node isn't in nodesById - " + to.nodeId() + " for de " + de.edgeId());
+        if (!from.edgesFrom().contains(de))
+            throw new InvalidMapDataException("From node doesn't have edge in edgesFrom - " + from.nodeId() + " for de " + de.edgeId());
+        if (!to.edgesTo().contains(de))
+            throw new InvalidMapDataException("To node doesn't have edge in edgesTo - " + to.nodeId() + " for de " + de.edgeId());
     }
 
     @Override
     public List<Node> nodesInBbox(double lat1, double lon1, double lat2, double lon2) {
         ArrayList<Node> result = new ArrayList();
         for (Node n : nodesById.values()) {
-            if (lat1 <= n.lat && n.lat <= lat2 && lon1 <= n.lon && n.lon <= lon2) {
+            if (lat1 <= n.lat() && n.lat() <= lat2 && lon1 <= n.lon() && n.lon() <= lon2) {
                 result.add(n);
             }
         }

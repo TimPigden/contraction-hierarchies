@@ -45,12 +45,12 @@ public abstract class PartialSolution {
                 DirectedEdge viaEdge = findEdgeWithId(thisNode, viaEdgeId, from);
                 edges.addFirst(viaEdge);
                 Node nextNode = (from?viaEdge.to():viaEdge.from());
-                if (nextNode.contractionOrder > thisNode.contractionOrder) {
+                if (nextNode.contractionOrder() > thisNode.contractionOrder()) {
                     throw new RuntimeException("Unexpectedly following edge from earlier-contracted node towards "
                             + "later-contracted node? " + thisNode + " vs " + nextNode);
                 }
                 thisNode = nextNode;
-                currentIdx = Collections.binarySearch(contractionOrderList, nextNode.contractionOrder);
+                currentIdx = Collections.binarySearch(contractionOrderList, nextNode.contractionOrder());
             } else {
                 break;
             }
@@ -74,7 +74,7 @@ public abstract class PartialSolution {
     }
     
     private DirectedEdge findEdgeWithId(Node node, long edgeId, boolean from) {
-        for (DirectedEdge de : (from?node.edgesFrom:node.edgesTo)) {
+        for (DirectedEdge de : (from?node.edgesFrom() : node.edgesTo())) {
             if (de.edgeId()==edgeId)
                 return de;
         }
@@ -91,8 +91,8 @@ public abstract class PartialSolution {
         Collections.sort(individualNodeSolutions, new Comparator<DijkstraSolution>() {
             @Override
             public int compare(DijkstraSolution a, DijkstraSolution b) {
-                int aco = a.getLastNode().contractionOrder;
-                int bco = b.getLastNode().contractionOrder;
+                int aco = a.getLastNode().contractionOrder();
+                int bco = b.getLastNode().contractionOrder();
                 if (aco != bco) {
                     return Integer.compare(aco,bco);
                 } else {
@@ -126,8 +126,8 @@ public abstract class PartialSolution {
         for (int i=0 ; i<individualNodeSolutions.size() ; i++) {
             DijkstraSolution ds = individualNodeSolutions.get(i);
             Node n = ds.getLastNode();
-            bb.putLong(nodeIdOffset+8*i, n.nodeId);
-            bb.putInt(contractionOrderOffset+4*i, n.contractionOrder);
+            bb.putLong(nodeIdOffset+8*i, n.nodeId());
+            bb.putInt(contractionOrderOffset+4*i, n.contractionOrder());
             bb.putInt(totalDriveTimeOffset+4*i, ds.totalDriveTimeMs);
             
             List<DirectedEdge> directedEdgeJS = ds.getDeltaEdges();

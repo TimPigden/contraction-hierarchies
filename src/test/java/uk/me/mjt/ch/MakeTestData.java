@@ -3,19 +3,20 @@ package uk.me.mjt.ch;
 
 import java.util.*;
 
-import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
 import uk.me.mjt.ch.impl.MapDataJImpl;
 import uk.me.mjt.ch.status.DiscardingStatusMonitor;
 
 public class MakeTestData {
     final DirectedEdgeFactory edgeFactory;
+    final NodeFactory nodeFactory;
     
-    public MakeTestData(DirectedEdgeFactory edgeFactory) {
+    public MakeTestData(DirectedEdgeFactory edgeFactory, NodeFactory nodeFactory) {
+        this.nodeFactory = nodeFactory;
         this.edgeFactory = edgeFactory;
     }
 
     public MapData makeSimpleThreeEntry() {
-        HashMap<Long,Node> result = makeRow(3);
+        HashMap<Long,Node> result = makeRow(3, new HashSet());
         Node.sortNeighborListsAll(result.values());
         return new MapDataJImpl(result);
     }
@@ -34,7 +35,7 @@ public class MakeTestData {
         for (int row = 0 ; row < rowCount ; row++) {
             for (int column = 0 ; column < colCount ; column++) {
                 long nodeId = ladderNodeId(row,column, rowCount,colCount);
-                Node n = new Node(nodeId,51.51f+rowSpacing*row,-0.12f+rowSpacing*column, Barrier.FALSE);
+                Node n = nodeFactory.create(nodeId,51.51f+rowSpacing*row,-0.12f+rowSpacing*column, Barrier.FALSE);
                 result.put(nodeId, n);
             }
         }
@@ -135,8 +136,8 @@ public class MakeTestData {
      */
     public MapData makeGatedThorn() {
         HashMap<Long,Node> result = makeRow(5);
-        Node newNode = new Node(10, 52f, 0.1f, Barrier.TRUE);
-        result.put(newNode.nodeId, newNode);
+        Node newNode = nodeFactory.create(10, 52f, 0.1f, Barrier.TRUE);
+        result.put(newNode.nodeId(), newNode);
         
         makeEdgeAndAddToNodes(5000,result.get(2L),newNode,500, AccessOnly.FALSE);
         makeEdgeAndAddToNodes(5001,newNode,result.get(4L),500, AccessOnly.FALSE);
@@ -157,7 +158,7 @@ public class MakeTestData {
     public MapData makeTurnRestrictedH() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
-            nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
+            nodes.put(i, nodeFactory.create(i, 52f, 0f, Barrier.FALSE));
         }
         
         makeBidirectionalEdgesAndAddToNodes(nodes.get(1L), nodes.get(2L));
@@ -190,7 +191,7 @@ public class MakeTestData {
     public MapData makeTurnRestrictedA() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
-            nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
+            nodes.put(i, nodeFactory.create(i, 52f, 0f, Barrier.FALSE));
         }
         
         makeBidirectionalEdgesAndAddToNodes(nodes.get(1L), nodes.get(2L));
@@ -233,7 +234,7 @@ public class MakeTestData {
     public MapData makeTurnRestrictedThorn() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
-            nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
+            nodes.put(i, nodeFactory.create(i, 52f, 0f, Barrier.FALSE));
         }
         
         makeBidirectionalEdgesAndAddToNodes(nodes.get(1L), nodes.get(2L));
@@ -273,7 +274,7 @@ public class MakeTestData {
     public MapData makeOffsetCrossroadWithOnlyStraightOn() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=6 ; i++) {
-            nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
+            nodes.put(i, nodeFactory.create(i, 52f, 0f, Barrier.FALSE));
         }
         
         makeBidirectionalEdgesAndAddToNodes(nodes.get(1L), nodes.get(2L));
@@ -297,7 +298,7 @@ public class MakeTestData {
     
     private DirectedEdge edgeBetween(Node from, Node to) {
         DirectedEdge result = null;
-        for (DirectedEdge de : from.edgesFrom) {
+        for (DirectedEdge de : from.edgesFrom()) {
             if (de.from() ==from && de.to() ==to) {
                 if (result == null)
                     result = de;
@@ -322,7 +323,7 @@ public class MakeTestData {
         return makeUnidirectionalEdgesAndAddToNodes(from, to, accessOnly, driveTimeMs);
     }
     private DirectedEdge makeUnidirectionalEdgesAndAddToNodes(Node from, Node to, AccessOnly accessOnly, int driveTimeMs) {
-        return makeEdgeAndAddToNodes(from.nodeId*1000000+to.nodeId, from, to, driveTimeMs, accessOnly);
+        return makeEdgeAndAddToNodes(from.nodeId()*1000000+to.nodeId(), from, to, driveTimeMs, accessOnly);
     }
     
     private DirectedEdge makeEdgeAndAddToNodes(long edgeId, Node from, Node to, int driveTimeMs, AccessOnly accessOnly) {
@@ -336,8 +337,9 @@ public class MakeTestData {
      * Makes a row of three nodes, with the middle node marked as a barrier.
      */
     public MapData makeGatedRow() {
-        HashMap<Long,Node> result = makeRow(3);
-        result.get(2L).barrier = Barrier.TRUE;
+        HashSet<Long> hsl = new HashSet();
+        hsl.add(2L);
+        HashMap<Long,Node> result = makeRow(3, hsl);
         return new MapDataJImpl(result);
     }
     
@@ -347,9 +349,10 @@ public class MakeTestData {
      * 1←→2←→3←→4←→5←→6←→7
      */
     public MapData makeDoubleGatedRow() {
-        HashMap<Long,Node> result = makeRow(7);
-        result.get(3L).barrier = Barrier.TRUE;
-        result.get(5L).barrier = Barrier.TRUE;
+        HashSet<Long> hs = new HashSet();
+        hs.add(3L);
+        hs.add(5L);
+        HashMap<Long,Node> result = makeRow(7, hs);
         return new MapDataJImpl(result);
     }
     
@@ -361,7 +364,7 @@ public class MakeTestData {
     public MapData makeDoubleAccessOnlyRow() {
         HashMap<Long,Node> nodes = new HashMap();
         for (long i=1 ; i<=7 ; i++) {
-            nodes.put(i, new Node(i, 52f, 0f, Barrier.FALSE));
+            nodes.put(i, nodeFactory.create(i, 52f, 0f, Barrier.FALSE));
         }
         
         makeBidirectionalEdgesAndAddToNodes(nodes.get(1L),nodes.get(2L));
@@ -377,15 +380,21 @@ public class MakeTestData {
         
         return new MapDataJImpl(nodes);
     }
-    
+
     private HashMap<Long,Node> makeRow(int numberOfNodes) {
-        Preconditions.require(numberOfNodes > 0);
+        return makeRow(numberOfNodes, new HashSet());
+    }
+    private HashMap<Long,Node> makeRow(int numberOfNodes, Set<Long> barriers) {
+            Preconditions.require(numberOfNodes > 0);
         HashMap<Long,Node> result = new HashMap();
         int edgeId = 1000;
         
         Node previous = null;
         for (long i=1 ; i<=numberOfNodes ; i++) {
-            Node newNode = new Node(i, 52f, 0.1f+0.001f*i, Barrier.FALSE);
+            Barrier bfalse = Barrier.FALSE;
+            if (barriers.contains(i))
+                bfalse = Barrier.TRUE;
+            Node newNode = nodeFactory.create(i, 52f, 0.1f+0.001f*i, bfalse);
             result.put(i, newNode);
             if (previous != null) {
                 makeEdgeAndAddToNodes(edgeId++,previous,newNode,1000, AccessOnly.FALSE);

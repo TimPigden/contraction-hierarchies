@@ -3,6 +3,7 @@ package uk.me.mjt.ch;
 
 import org.junit.Test;
 import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.NodeFactoryJ;
 
 import static org.junit.Assert.*;
 
@@ -12,7 +13,9 @@ public class AdjustGraphForRestrictionsTest {
     }
 
     DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
-    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+    NodeFactory nodeFactory = new NodeFactoryJ();
+
+    MakeTestData makeTestData = new MakeTestData(edgeFactory, nodeFactory);
 
     @Test
     public void testAvoidAccessOnlySegmentOfRing() {
@@ -69,7 +72,7 @@ public class AdjustGraphForRestrictionsTest {
     @Test
     public void testImplicitWorksOnDoubleAccessOnlyRow2() {
         MapData graph = makeTestData.makeDoubleAccessOnlyRow();
-        graph = AdjustGraphForRestrictions.makeNewGraph(graph, graph.getNodeById(4), edgeFactory);
+        graph = AdjustGraphForRestrictions.makeNewGraph(graph, graph.getNodeById(4), edgeFactory, nodeFactory);
         
         ColocatedNodeSet startNodes = graph.getNodeBySourceDataId(1);
         ColocatedNodeSet endNodes = graph.getNodeBySourceDataId(7);
@@ -82,7 +85,7 @@ public class AdjustGraphForRestrictionsTest {
     @Test(expected=IllegalArgumentException.class)
     public void testAdjustMayNotStartAtGateNode() {
         MapData graph = makeTestData.makeDoubleGatedRow();
-        AdjustGraphForRestrictions.makeNewGraph(graph, graph.getNodeById(3), edgeFactory);
+        AdjustGraphForRestrictions.makeNewGraph(graph, graph.getNodeById(3), edgeFactory, nodeFactory);
     }
     
     @Test
@@ -117,13 +120,13 @@ public class AdjustGraphForRestrictionsTest {
         Node startNode = graph.getNodeById(startNodeId);
         Node endNode = graph.getNodeById(endNodeId);
         
-        String result = AdjustGraphForRestrictions.testRestrictedDijkstra(graph, startNode, endNode, edgeFactory);
+        String result = AdjustGraphForRestrictions.testRestrictedDijkstra(graph, startNode, endNode, edgeFactory, nodeFactory);
         
         assertNotNull(result);
         assertEquals(expected, result);
         
-        assertModifiedGraph(AdjustGraphForRestrictions.makeNewGraph(graph, startNode, edgeFactory),startNodeId,endNodeId,expected);
-        assertModifiedGraph(AdjustGraphForRestrictions.makeNewGraph(graph, endNode, edgeFactory),startNodeId,endNodeId,expected);
+        assertModifiedGraph(AdjustGraphForRestrictions.makeNewGraph(graph, startNode, edgeFactory, nodeFactory),startNodeId,endNodeId,expected);
+        assertModifiedGraph(AdjustGraphForRestrictions.makeNewGraph(graph, endNode, edgeFactory, nodeFactory),startNodeId,endNodeId,expected);
         
     }
     
@@ -131,14 +134,14 @@ public class AdjustGraphForRestrictionsTest {
     public void testTrivialDoesntCrash() {
         MapData graph = makeTestData.makeSimpleFiveEntry();
         Node startNode = graph.getNodeById(1);
-        AdjustGraphForRestrictions.makeNewGraph(graph, startNode, edgeFactory);
+        AdjustGraphForRestrictions.makeNewGraph(graph, startNode, edgeFactory, nodeFactory);
     }
     
     @Test
     public void testSpuriousUturnsRemoved() {
         MapData graph = makeTestData.makeSimpleFiveEntry();
         Node startNode = graph.getNodeById(1);
-        MapData adjusted = AdjustGraphForRestrictions.makeNewGraph(graph, startNode, edgeFactory);
+        MapData adjusted = AdjustGraphForRestrictions.makeNewGraph(graph, startNode, edgeFactory, nodeFactory);
         assertEquals(10, adjusted.getNodeCount());
     }
     
@@ -163,20 +166,20 @@ public class AdjustGraphForRestrictionsTest {
     
     private String solutionToSimpleString(DijkstraSolution ds) {
         StringBuilder sb = new StringBuilder();
-        sb.append(ds.edges.get(0).from().sourceDataNodeId);
+        sb.append(ds.edges.get(0).from().sourceDataNodeId());
         for (DirectedEdge de : ds.edges) {
             sb.append("--").append(de.driveTimeMs())
                     .append("-->")
-                    .append(de.to().sourceDataNodeId);
+                    .append(de.to().sourceDataNodeId());
         }
         return sb.toString();
     }
     
     private String backwardsSolutionToSimpleString(DijkstraSolution ds) {
         StringBuilder sb = new StringBuilder();
-        sb.append(ds.edges.get(0).to().sourceDataNodeId);
+        sb.append(ds.edges.get(0).to().sourceDataNodeId());
         for (DirectedEdge de : ds.edges) {
-            sb.insert(0, de.from().sourceDataNodeId+"--"+de.driveTimeMs()+"-->");
+            sb.insert(0, de.from().sourceDataNodeId()+"--"+de.driveTimeMs()+"-->");
         }
         return sb.toString();
     }

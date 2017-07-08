@@ -1,19 +1,20 @@
 
 package uk.me.mjt.ch.cache;
 
-import java.util.HashMap;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 import uk.me.mjt.ch.*;
 import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.NodeFactoryJ;
 
 public class CachedContractedDijkstraTest {
 
     public CachedContractedDijkstraTest() {
     }
     DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
-    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+    NodeFactory nodeFactory = new NodeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory, nodeFactory);
 
     @Test
     public void testContractedGraphDijkstra() {

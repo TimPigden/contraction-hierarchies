@@ -1,7 +1,6 @@
 
 package uk.me.mjt.ch.cache;
 
-import java.util.HashMap;
 import java.util.concurrent.Callable;
 import uk.me.mjt.ch.ColocatedNodeSet;
 import uk.me.mjt.ch.ContractedDijkstra;

@@ -147,12 +147,12 @@ public class DirectedEdgeJ implements DirectedEdge {
     }
     
     @Override public void addToToAndFromNodes() {
-        if (!_from.edgesFrom.contains(this)) {
-            _from.edgesFrom.add(this);
+        if (!_from.edgesFrom().contains(this)) {
+            _from.edgesFrom().add(this);
             _from.sortNeighborLists();
         }
-        if (!_to.edgesTo.contains(this)) {
-            _to.edgesTo.add(this);
+        if (!_to.edgesTo().contains(this)) {
+            _to.edgesTo().add(this);
             _to.sortNeighborLists();
         }
     }
@@ -164,7 +164,7 @@ public class DirectedEdgeJ implements DirectedEdge {
 
     @Override
     public String toString() {
-        return _from.nodeId+"--"+_driveTimeMs+"("+_contractionDepth+")-->"+_to.nodeId;
+        return _from.nodeId()+"--"+_driveTimeMs+"("+_contractionDepth+")-->"+_to.nodeId();
     }
     
     @Override public String toDetailedString() {

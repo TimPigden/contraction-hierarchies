@@ -36,43 +36,43 @@ public class Util {
         } else {
             a.sortNeighborLists();
             b.sortNeighborLists();
-            
-            return compareEdgeArray(a.edgesFrom,b.edgesFrom,printDiff)
-                    && compareEdgeArray(a.edgesTo,b.edgesTo,printDiff);
+
+            return compareEdgeArray(a.edgesFrom(),b.edgesFrom(),printDiff)
+                    && compareEdgeArray(a.edgesTo(),b.edgesTo(),printDiff);
         }
     }
     
     private static boolean shallowEquals(Node a, Node b) {
         return ( a!=null && b!=null
-                && a.nodeId == b.nodeId
-                && a.sourceDataNodeId == b.sourceDataNodeId
-                && a.lat == b.lat
-                && a.lon == b.lon
-                && a.contractionAllowed == b.contractionAllowed
-                && a.contractionOrder == b.contractionOrder
-                && a.edgesFrom.size() == b.edgesFrom.size()
-                && a.edgesTo.size() == b.edgesTo.size()
-                && a.barrier == b.barrier);
+                && a.nodeId() == b.nodeId()
+                && a.sourceDataNodeId() == b.sourceDataNodeId()
+                && a.lat() == b.lat()
+                && a.lon() == b.lon()
+                && a.contractionAllowed() == b.contractionAllowed()
+                && a.contractionOrder() == b.contractionOrder()
+                && a.edgesFrom().size() == b.edgesFrom().size()
+                && a.edgesTo().size() == b.edgesTo().size()
+                && a.barrier() == b.barrier());
     }
     
     private static void printShallowDiff(Node a, Node b) {
         
         if (a!=null && b!=null) {
-            System.out.println("Node IDs: " + a.sourceDataNodeId +","+b.sourceDataNodeId);
-            System.out.println("Source data node IDs: " + a.nodeId +","+b.nodeId);
-            System.out.println("Lats: " + a.lat +","+ b.lat);
-            System.out.println("Lons: " + a.lon +","+ b.lon);
-            System.out.println("Contraction Allowed: " + a.contractionAllowed +","+ b.contractionAllowed);
-            System.out.println("Edges from: " + a.edgesFrom.size() +","+ b.edgesFrom.size());
-            System.out.println("Edges to: " + a.edgesTo.size() +","+ b.edgesTo.size());
-            System.out.println("Barrier: " + a.barrier +","+ b.barrier);
+            System.out.println("Node IDs: " + a.sourceDataNodeId() +","+b.sourceDataNodeId());
+            System.out.println("Source data node IDs: " + a.nodeId() +","+b.nodeId());
+            System.out.println("Lats: " + a.lat() +","+ b.lat());
+            System.out.println("Lons: " + a.lon() +","+ b.lon());
+            System.out.println("Contraction Allowed: " + a.contractionAllowed() +","+ b.contractionAllowed());
+            System.out.println("Edges from: " + a.edgesFrom().size() +","+ b.edgesFrom().size());
+            System.out.println("Edges to: " + a.edgesTo().size() +","+ b.edgesTo().size());
+            System.out.println("Barrier: " + a.barrier() +","+ b.barrier());
 
-            System.out.println("Edges from a:" + a.edgesFrom);
-            System.out.println("Edges from b:" + b.edgesFrom);
-            System.out.println("Edges to a:" + a.edgesTo);
-            System.out.println("Edges to b:" + b.edgesTo);
+            System.out.println("Edges from a:" + a.edgesFrom());
+            System.out.println("Edges from b:" + b.edgesFrom());
+            System.out.println("Edges to a:" + a.edgesTo());
+            System.out.println("Edges to b:" + b.edgesTo());
         } else {
-            System.out.println("Null check: " + (a==null?"null":a.nodeId) +","+(b==null?"null":b.nodeId));
+            System.out.println("Null check: " + (a==null?"null":a.nodeId()) +","+(b==null?"null":b.nodeId()));
         }
     }
     

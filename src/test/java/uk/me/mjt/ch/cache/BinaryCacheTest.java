@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import uk.me.mjt.ch.*;
 import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.NodeFactoryJ;
 
 public class BinaryCacheTest {
     
@@ -14,7 +15,8 @@ public class BinaryCacheTest {
     GraphContractor instance;
     BinaryCache cache;
     DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
-    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+    NodeFactory nodeFactory = new NodeFactoryJ();
+    MakeTestData makeTestData = new MakeTestData(edgeFactory, nodeFactory);
 
 
     public BinaryCacheTest() {

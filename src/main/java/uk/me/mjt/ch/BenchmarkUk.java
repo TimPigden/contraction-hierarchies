@@ -8,6 +8,7 @@ import java.util.concurrent.Future;
 import uk.me.mjt.ch.cache.BinaryCache;
 import uk.me.mjt.ch.cache.CachedContractedDijkstra;
 import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.NodeFactoryJ;
 import uk.me.mjt.ch.loader.BinaryFormat;
 import uk.me.mjt.ch.status.StdoutStatusMonitor;
 
@@ -16,13 +17,14 @@ public class BenchmarkUk {
     MapData allNodes;
     Node hatfield;
     
-    public void loadAndCheckMapData(DirectedEdgeFactory edgeFactory) throws IOException {
+    public void loadAndCheckMapData(DirectedEdgeFactory edgeFactory, NodeFactory nodeFactory) throws IOException {
         long startTime = System.currentTimeMillis();
         
-        boolean loadedOk = attemptToLoad("great-britain-new-contracted-nodes.dat","great-britain-new-contracted-ways.dat", edgeFactory);
+        boolean loadedOk = attemptToLoad("great-britain-new-contracted-nodes.dat",
+                "great-britain-new-contracted-ways.dat", edgeFactory, nodeFactory);
         if (!loadedOk) {
             loadedOk = attemptToLoad("/home/mtandy/Documents/contraction hierarchies/binary-test/great-britain-new-contracted-nodes.dat",
-                    "/home/mtandy/Documents/contraction hierarchies/binary-test/great-britain-new-contracted-ways.dat", edgeFactory);
+                    "/home/mtandy/Documents/contraction hierarchies/binary-test/great-britain-new-contracted-ways.dat", edgeFactory, nodeFactory);
         }
         if (!loadedOk) {
             System.out.println("Couldn't find the map data to test with?");
@@ -33,8 +35,8 @@ public class BenchmarkUk {
         CheckOsmRouting.checkContracted(allNodes);
     }
     
-    public boolean attemptToLoad(String nodeFile, String wayFile, DirectedEdgeFactory edgeFactory) throws IOException {
-        BinaryFormat bf = new BinaryFormat(edgeFactory);
+    public boolean attemptToLoad(String nodeFile, String wayFile, DirectedEdgeFactory edgeFactory, NodeFactory nodeFactory) throws IOException {
+        BinaryFormat bf = new BinaryFormat(edgeFactory, nodeFactory);
         
         if (new File(nodeFile).exists() && new File(wayFile).exists()) {
             System.out.println("Loading data from " + nodeFile + " and " + wayFile);
@@ -151,7 +153,8 @@ public class BenchmarkUk {
         try {
             BenchmarkUk instance = new BenchmarkUk();
             DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
-            instance.loadAndCheckMapData(edgeFactory);
+            NodeFactory nodeFactory = new NodeFactoryJ();
+            instance.loadAndCheckMapData(edgeFactory, nodeFactory);
             
             System.gc(); // Hopefully start the map data on its journey to oldgen :)
             

@@ -38,10 +38,10 @@ public class Puml {
     }
     
     private static String nodeToString(Node n) {
-        if (n.nodeId==n.sourceDataNodeId) {
-            return "(Node "+n.nodeId+")";
+        if (n.nodeId() ==n.sourceDataNodeId()) {
+            return "(Node "+n.nodeId()+")";
         } else {
-            return "(Node "+n.nodeId+ "\\nOriginally "+n.sourceDataNodeId+")";
+            return "(Node "+n.nodeId()+ "\\nOriginally "+n.sourceDataNodeId()+")";
         }
     }
     

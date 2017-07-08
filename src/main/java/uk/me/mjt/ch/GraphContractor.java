@@ -42,10 +42,10 @@ public class GraphContractor {
     public void contractNode(Node n, int order, ArrayList<DirectedEdge> shortcuts) {
         for (DirectedEdge s : shortcuts) {
             DirectedEdge newShortcut = s.cloneWithEdgeId(allNodes.getEdgeIdCounter().incrementAndGet());
-            newShortcut.from().edgesFrom.add(newShortcut);
-            newShortcut.to().edgesTo.add(newShortcut);
+            newShortcut.from().edgesFrom().add(newShortcut);
+            newShortcut.to().edgesTo().add(newShortcut);
         }
-        n.contractionOrder = order;
+        n.setContractionOrder(order);
     }
     
     public ArrayList<DirectedEdge> findShortcuts(Node n) {
@@ -54,7 +54,7 @@ public class GraphContractor {
         
         HashSet<Node> destinationNodes = new HashSet<Node>();
         int maxOutTime = 0;
-        for (DirectedEdge outgoing : n.edgesFrom) {
+        for (DirectedEdge outgoing : n.edgesFrom()) {
             if (!outgoing.to().isContracted()) {
                 destinationNodes.add(outgoing.to());
                 if (outgoing.driveTimeMs() > maxOutTime)
@@ -62,7 +62,7 @@ public class GraphContractor {
             }
         }
         
-        for (DirectedEdge incoming : n.edgesTo) {
+        for (DirectedEdge incoming : n.edgesTo()) {
             Node startNode = incoming.from();
             if (startNode.isContracted())
                 continue;
@@ -105,7 +105,7 @@ public class GraphContractor {
     private void parallelInitContractionOrder() {
         ArrayList<Callable<KeyValue>> callables = new ArrayList(allNodes.getNodeCount());
         for (final Node n : allNodes.getAllNodes()) {
-            if (n.contractionAllowed && !n.isContracted()) {
+            if (n.contractionAllowed() && !n.isContracted()) {
                 callables.add(new Callable<KeyValue>() {
                     public KeyValue call() throws Exception {
                         ContractionOrdering key = new ContractionOrdering(n,getBalanceOfEdgesRemoved(n));
@@ -254,8 +254,8 @@ public class GraphContractor {
 
         public ContractionOrdering(Node n, int edgeCountReduction) {
             this.edgeCountReduction = edgeCountReduction;
-            contractionDepth = Math.max(getMaxContractionDepth(n.edgesFrom), getMaxContractionDepth(n.edgesTo));
-            idHash = hashNodeId(n.nodeId);
+            contractionDepth = Math.max(getMaxContractionDepth(n.edgesFrom()), getMaxContractionDepth(n.edgesTo()));
+            idHash = hashNodeId(n.nodeId());
         }
         
         private long hashNodeId(long nodeId) {

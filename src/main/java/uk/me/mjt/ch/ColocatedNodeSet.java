@@ -25,9 +25,9 @@ public class ColocatedNodeSet implements Set<Node> {
                 referenceLocation=n;
             else
                 Preconditions.require(
-                        n.lat==referenceLocation.lat,
-                        n.sourceDataNodeId==referenceLocation.sourceDataNodeId,
-                        n.lon==referenceLocation.lon);
+                        n.lat()==referenceLocation.lat(),
+                        n.sourceDataNodeId()==referenceLocation.sourceDataNodeId(),
+                        n.lon()==referenceLocation.lon());
         }
     }
     

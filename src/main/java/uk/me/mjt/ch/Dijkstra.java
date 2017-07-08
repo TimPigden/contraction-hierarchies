@@ -92,9 +92,10 @@ public class Dijkstra {
             thisNodeInfo.visited = true;
             thisNodeInfo.distanceOrder = null;
 
-            for (DirectedEdge edge : (direction == Direction.FORWARDS ? shortestTimeNode.edgesFrom : shortestTimeNode.edgesTo)) {
+            for (DirectedEdge edge : (direction == Direction.FORWARDS ? shortestTimeNode.edgesFrom() :
+                    shortestTimeNode.edgesTo())) {
                 Node n = (direction == Direction.FORWARDS ? edge.to() : edge.from());
-                if (n.contractionOrder < shortestTimeNode.contractionOrder)
+                if (n.contractionOrder() < shortestTimeNode.contractionOrder())
                     break;
                 
                 NodeInfo neighborNodeInfo = nodeInfo.get(n);
@@ -143,7 +144,7 @@ public class Dijkstra {
             } else if (this.minDriveTime > that.minDriveTime) {
                 return 1;
             } else {
-                return Long.compare(this.node.nodeId,that.node.nodeId);
+                return Long.compare(this.node.nodeId(),that.node.nodeId());
             }
         }
     }

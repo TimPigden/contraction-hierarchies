@@ -9,13 +9,16 @@ import static org.junit.Assert.*;
 
 import uk.me.mjt.ch.*;
 import uk.me.mjt.ch.impl.DirectedEdgeFactoryJ;
+import uk.me.mjt.ch.impl.NodeFactoryJ;
 import uk.me.mjt.ch.status.MonitoredProcess;
 import uk.me.mjt.ch.status.StdoutStatusMonitor;
 
 public class BinaryFormatTest {
 
     DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
-    MakeTestData makeTestData = new MakeTestData(edgeFactory);
+    NodeFactory nodeFactory = new NodeFactoryJ();
+
+    MakeTestData makeTestData = new MakeTestData(edgeFactory, nodeFactory);
 
     public BinaryFormatTest() {
     }
@@ -64,7 +67,7 @@ public class BinaryFormatTest {
         ByteArrayOutputStream turnRestrictionsOut = new ByteArrayOutputStream();
         DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
 
-        BinaryFormat instance = new BinaryFormat(edgeFactory);
+        BinaryFormat instance = new BinaryFormat(edgeFactory, nodeFactory);
         
         instance.write(testData, new DataOutputStream(nodesOut), new DataOutputStream(waysOut), new DataOutputStream(turnRestrictionsOut));
         
@@ -93,7 +96,7 @@ public class BinaryFormatTest {
         DirectedEdgeFactory edgeFactory = new DirectedEdgeFactoryJ();
 
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        BinaryFormat instance = new BinaryFormat(edgeFactory);
+        BinaryFormat instance = new BinaryFormat(edgeFactory, nodeFactory);
         instance.read(bais, bais, bais, new StdoutStatusMonitor());
     }
     
